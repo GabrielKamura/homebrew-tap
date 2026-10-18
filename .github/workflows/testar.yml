@@ -1,0 +1,23 @@
+# Instala a receita num Mac do GitHub a cada mudança (o dono não tem Homebrew no Mac dele).
+name: Testar a receita
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  instalar:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Conferir a receita
+        run: |
+          brew tap-new --no-git local/kamurafy-teste >/dev/null
+          cp Casks/kamurafy.rb "$(brew --repository local/kamurafy-teste)/Casks/"
+          brew style --cask local/kamurafy-teste/kamurafy || true
+      - name: Instalar e desinstalar
+        run: |
+          brew install --cask local/kamurafy-teste/kamurafy
+          test -d /Applications/Kamurafy.app
+          defaults read /Applications/Kamurafy.app/Contents/Info.plist CFBundleShortVersionString
+          brew uninstall --cask local/kamurafy-teste/kamurafy
